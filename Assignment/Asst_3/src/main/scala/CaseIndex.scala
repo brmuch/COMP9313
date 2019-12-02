@@ -19,7 +19,8 @@ object CaseIndex {
         val path = new File("./cases_test")                                      // get ./xml directory
         val index = Http("http://localhost:9200/legal_idx?pretty").method("PUT").header("Content-Type", "application/json").asString         // create new index
         
-        val jsonData = "{\"cases\": {\"properties\": {\"name\": {\"type\":\"text\"},\"url\": {\"type\": \"text\"},\"location\": {\"type\": \"text\"}, \"person\": {\"type\": \"text\"},\"organiztion\": {\"type\": \"text\"},\"catchphrases\": {\"type\": \"text\"}, \"sentences\": {\"type\": \"text\"}}}}"             // define json of mapping
+        val jsonData = "{\"cases\": {\"properties\": {\"name\": {\"type\":\"text\"},\"url\": {\"type\": \"text\"},\"location\": {\"type\": \"text\"}, 
+                        \"person\": {\"type\": \"text\"},\"organiztion\": {\"type\": \"text\"},\"catchphrases\": {\"type\": \"text\"}, \"sentences\": {\"type\": \"text\"}}}}"             // define json of mapping
         val result = Http("http://localhost:9200/legal_idx/cases/_mapping?pretty").method("PUT").header("Content-Type", "application/json").postData(jsonData).asString                    // create new mapping and type with Http request
         println(result)
         
@@ -41,7 +42,8 @@ object CaseIndex {
             // analysis catchphrases and sentences
             for (phase <- phaseLs) {            
                 if (phase != "" && phase != " ") {                  
-                    val response = Http("http://localhost:9000/?properties=%7B'annotators':'ner','outputFormat':'json'%7D").postData(phase).method("POST").header("Content-Type", "appslication/json").option(HttpOptions.connTimeout(60000)).option(HttpOptions.readTimeout(60000)).asString.body                               // post data to stanford corenlp server by http request
+                    val response = Http("http://localhost:9000/?properties=%7B'annotators':'ner','outputFormat':'json'%7D").postData(phase)
+                                    .method("POST").header("Content-Type", "appslication/json").option(HttpOptions.connTimeout(60000)).option(HttpOptions.readTimeout(60000)).asString.body             // post data to stanford corenlp server by http request
                     val b = JSON.parseFull(response)                                                                                        // handle Json response
                     val jsonObj = b match {case Some(map:Map[String, List[Any]]) => map.get("sentences")}                                   // get attribute of key(sentences) in Map
                     val jsonObj1 = jsonObj match {case Some(list:List[Map[String, Any]]) => list(0).get("tokens")}                          // get attribute of key(tokens) in Map from a List
@@ -75,7 +77,10 @@ object CaseIndex {
             name = name.replace("%20", " ")                                                                                                 // replace %20 with space
             name = name.replace("'", "\'").replace("\"", "\\\"")                                                                            // Escape "  and '  in the content
             link = link.replace("'", "\'").replace("\"", "\\\"")                                                                            // Escape "  and '  in the content
-            val jsonContent = "{\"name\":\"" + name + "\",\"url\":\"" + link + "\",\"location\":\"" + locationSet.mkString(" ").replace("'", "\'").replace("\"", "\\\"") + "\",\"person\":\"" + personSet.mkString(" ").replace("'", "\'").replace("\"", "\\\"") + "\",\"organization\":\"" + organizationSet.mkString(" ").replace("'", "\'").replace("\"", "\\\"") + "\",\"catchphrases\":\"" + catchphrases.replace("'", "\'").replace("\"", "\\\"") + "\",\"sentences\":\"" + sentences.replace("'", "\'").replace("\"", "\\\"") + "\"}" // Json Put data into index
+            val jsonContent = "{\"name\":\"" + name + "\",\"url\":\"" + link + "\",\"location\":\"" + locationSet.mkString(" ").replace("'", "\'")
+                            .replace("\"", "\\\"") + "\",\"person\":\"" + personSet.mkString(" ").replace("'", "\'").replace("\"", "\\\"") 
+                            + "\",\"organization\":\"" + organizationSet.mkString(" ").replace("'", "\'").replace("\"", "\\\"") + "\",\"catchphrases\":\"" 
+                            + catchphrases.replace("'", "\'").replace("\"", "\\\"") + "\",\"sentences\":\"" + sentences.replace("'", "\'").replace("\"", "\\\"") + "\"}" // Json Put data into index
             val addResponse = Http(httpBase).method("PUT").header("Content-Type", "application/json").postData(jsonContent).asString.body   // new a document with Http request
             println(addResponse)                                                                                                            // print http response
         }
