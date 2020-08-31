@@ -32,7 +32,7 @@ public class Assignment1 {
 	
 // TODO: Write the source code for your solution here.	
 	public static class NgramIterator implements Iterator<String> {
-		private final List<String> Ls;                            // ArrayList used to stored words
+	    private final List<String> Ls;                            // ArrayList used to stored words
 	    private final int n;                                      // variable for n grams
 	    int pos = 0;                                              // position
 	    
